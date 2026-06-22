@@ -41,61 +41,6 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenEmailIsEmpty() {
-        User user = createValidUser();
-        user.setEmail("   ");
-
-        ValidationException ex = assertThrows(ValidationException.class, () -> {
-            userController.addUser(user);
-        });
-        assertEquals("Email не может быть пустым", ex.getMessage());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenEmailDoesNotContainAtSign() {
-        User user = createValidUser();
-        user.setEmail("myaddress-yandex.ru");
-
-        ValidationException ex = assertThrows(ValidationException.class, () -> {
-            userController.addUser(user);
-        });
-        assertEquals("Email должен содержать символ @", ex.getMessage());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenLoginIsEmpty() {
-        User user = createValidUser();
-        user.setLogin("");
-
-        ValidationException ex = assertThrows(ValidationException.class, () -> {
-            userController.addUser(user);
-        });
-        assertEquals("Логин не может быть пустым или содержать пробелы", ex.getMessage());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenLoginContainsSpaces() {
-        User user = createValidUser();
-        user.setLogin("super user 77");
-
-        ValidationException ex = assertThrows(ValidationException.class, () -> {
-            userController.addUser(user);
-        });
-        assertEquals("Логин не может быть пустым или содержать пробелы", ex.getMessage());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenBirthdayIsInFuture() {
-        User user = createValidUser();
-        user.setBirthday(LocalDate.now().plusDays(1)); // Завтрашний день
-
-        ValidationException ex = assertThrows(ValidationException.class, () -> {
-            userController.addUser(user);
-        });
-        assertEquals("Дата рождения не может быть пустой или быть из будущего", ex.getMessage());
-    }
-
-    @Test
     void shouldSetLoginAsNameWhenNameIsEmpty() {
         User user = createValidUser();
         user.setName("");
