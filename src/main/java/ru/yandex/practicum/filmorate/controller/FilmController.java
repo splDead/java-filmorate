@@ -30,10 +30,6 @@ public final class FilmController {
     /** Хранилище фильмов. */
     private final Map<Long, Film> films = new ConcurrentHashMap<>();
 
-    /** Дата рождения кинематографа. */
-    private static final LocalDate CINEMA_BIRTH_DAY =
-            LocalDate.of(1895, 12, 28);
-
     /**
      * Добавляет новый фильм в систему.
      *
@@ -45,7 +41,6 @@ public final class FilmController {
         log.info("Получен запрос на добавление фильма: {}",
                 film.getName());
 
-        checkFilmReleaseDate(film);
         checkDuplicateFilm(film);
 
         long newId = IdGenerator.getNextId(films);
@@ -80,7 +75,6 @@ public final class FilmController {
                     + newFilm.getId() + " не найден");
         }
 
-        checkFilmReleaseDate(newFilm);
         checkDuplicateFilmForUpdate(newFilm);
 
         films.put(newFilm.getId(), newFilm);
@@ -100,25 +94,6 @@ public final class FilmController {
         log.info("Получен запрос на список всех фильмов. Всего: {}",
                 films.size());
         return films.values();
-    }
-
-    /**
-     * Проверяет корректность даты релиза фильма.
-     *
-     * @param film объект фильма для проверки
-     */
-    private void checkFilmReleaseDate(final Film film) {
-        if (film.getReleaseDate() == null) {
-            log.warn("Отсутствует дата выхода фильма");
-            throw new ValidationException("Дата выхода не может быть пустой");
-        }
-
-        if (film.getReleaseDate().isBefore(CINEMA_BIRTH_DAY)) {
-            log.warn("Дата выхода фильма раньше 1895 года: {}",
-                    film.getReleaseDate());
-            throw new ValidationException("Дата выхода фильма не может "
-                    + "быть раньше 28 декабря 1895 года");
-        }
     }
 
     /**

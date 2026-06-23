@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import ru.yandex.practicum.filmorate.annotation.ValidReleaseDate;
 
 import java.time.LocalDate;
 
@@ -32,6 +33,7 @@ public class Film {
 
     /** Дата релиза фильма. */
     @NotNull
+    @ValidReleaseDate
     private LocalDate releaseDate;
 
     /** Продолжительность фильма в минутах. */

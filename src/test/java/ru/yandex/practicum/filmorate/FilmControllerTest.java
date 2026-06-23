@@ -1,24 +1,31 @@
 package ru.yandex.practicum.filmorate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exeption.NotFoundException;
-import ru.yandex.practicum.filmorate.exeption.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class FilmControllerTest {
 
     private FilmController filmController;
+    private Validator validator;
 
     @BeforeEach
     void setUp() {
         filmController = new FilmController();
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        this.validator = factory.getValidator();
     }
 
     private Film createValidFilm() {
@@ -44,12 +51,25 @@ class FilmControllerTest {
     @Test
     void shouldThrowExceptionWhenReleaseDateIsBeforeCinemaBirth() {
         Film film = createValidFilm();
-        film.setReleaseDate(LocalDate.of(1895, 12, 27));
+        film.setReleaseDate(LocalDate.of(1895, 12, 27)); // На день раньше рождения кино
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
-        ValidationException ex = assertThrows(ValidationException.class, () -> {
-            filmController.addFilm(film);
-        });
-        assertEquals("Дата выхода фильма не может быть раньше 28 декабря 1895 года", ex.getMessage());
+        assertFalse(violations.isEmpty(), "Ожидалась ошибка валидации для даты до 1895 года");
+        assertEquals(1, violations.size());
+
+        String expectedMessage = "Дата выхода фильма не может быть пустой или раньше 28 декабря 1895 года";
+        String actualMessage = violations.iterator().next().getMessage();
+
+        assertEquals(expectedMessage, actualMessage);
+    }
+
+    @Test
+    void shouldPassValidationWithCorrectReleaseDate() {
+        Film film = createValidFilm();
+        film.setReleaseDate(LocalDate.of(1895, 12, 28)); // Точно в день рождения кино
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+
+        assertTrue(violations.isEmpty(), "Валидация должна пройти успешно для даты 28.12.1895");
     }
 
     @Test
