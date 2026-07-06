@@ -1,4 +1,4 @@
 /**
  * Кастомные исключения бизнес-логики приложения.
  */
-package ru.yandex.practicum.filmorate.exeption;
+package ru.yandex.practicum.filmorate.exception;

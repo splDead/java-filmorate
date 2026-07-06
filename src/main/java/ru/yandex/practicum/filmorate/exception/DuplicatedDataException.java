@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.exeption;
+package ru.yandex.practicum.filmorate.exception;
 
 /**
  * Исключение, выбрасываемое при попытке добавить дублирующиеся данные.

@@ -7,8 +7,11 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
-import ru.yandex.practicum.filmorate.exeption.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -23,18 +26,18 @@ class FilmControllerTest {
 
     @BeforeEach
     void setUp() {
-        filmController = new FilmController();
+        filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), new InMemoryUserStorage()));
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         this.validator = factory.getValidator();
     }
 
     private Film createValidFilm() {
-        Film film = new Film();
-        film.setName("Интерстеллар");
-        film.setDescription("Прекрасный фильм о космосе и времени.");
-        film.setReleaseDate(LocalDate.of(2014, 11, 6));
-        film.setDuration(169);
-        return film;
+        return Film.builder()
+                .name("Интерстеллар")
+                .description("Прекрасный фильм о космосе и времени.")
+                .releaseDate(LocalDate.of(2014, 11, 6))
+                .duration(169)
+                .build();
     }
 
     @Test
