@@ -1,17 +1,16 @@
-package ru.yandex.practicum.filmorate.exeption;
+package ru.yandex.practicum.filmorate.exception;
 
 /**
- * Исключение, выбрасываемое при нарушении условий валидации данных.
+ * Исключение, выбрасываемое когда запрашиваемый ресурс не найден.
  */
-public final class ValidationException extends RuntimeException {
+public final class NotFoundException extends RuntimeException {
 
     /**
      * Конструирует новое исключение с заданным сообщением об ошибке.
      *
      * @param message сообщение с подробным описанием причины ошибки
      */
-    public ValidationException(final String message) {
+    public NotFoundException(final String message) {
         super(message);
     }
 }
-

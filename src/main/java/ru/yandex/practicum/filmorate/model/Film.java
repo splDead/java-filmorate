@@ -4,17 +4,22 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import ru.yandex.practicum.filmorate.annotation.ValidReleaseDate;
 
 import java.time.LocalDate;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Класс, описывающий модель фильма.
  */
 @Data
-public class Film {
+@Builder
+public final class Film {
 
     /** Максимально допустимая длина описания фильма. */
     private static final int MAX_DESCRIPTION_LENGTH = 200;
@@ -40,4 +45,23 @@ public class Film {
     @NotNull
     @Positive
     private Integer duration;
+
+    /** Список идентификаторов пользователей, поставивших лайк. */
+    @Getter(lombok.AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @Builder.Default
+    private Set<Long> likes = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Возвращает список лайков фильма.
+     * Если список равен null, инициализирует его пустым множеством.
+     *
+     * @return множество идентификаторов пользователей, лайкнувших фильм
+     */
+    public Set<Long> getLikes() {
+        if (likes == null) {
+            likes = ConcurrentHashMap.newKeySet();
+        }
+        return likes;
+    }
 }

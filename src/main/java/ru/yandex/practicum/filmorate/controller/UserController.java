@@ -1,33 +1,38 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import ru.yandex.practicum.filmorate.exeption.ValidationException;
-import ru.yandex.practicum.filmorate.exeption.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exeption.NotFoundException;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.util.IdGenerator;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 /**
  * Контроллер для обработки запросов, связанных с пользователями.
  */
-@Slf4j
 @RestController
 @RequestMapping("/users")
 public final class UserController {
 
-    /** Хранилище пользователей. */
-    private final Map<Long, User> users = new ConcurrentHashMap<>();
+    /** Сервис для работы с пользователями. */
+    private final UserService service;
+
+    /**
+     * Конструктор контроллера.
+     *
+     * @param userService сервис пользователей
+     */
+    public UserController(final UserService userService) {
+        this.service = userService;
+    }
 
     /**
      * Добавляет нового пользователя в систему.
@@ -37,19 +42,7 @@ public final class UserController {
      */
     @PostMapping
     public User addUser(@Valid @RequestBody final User user) {
-        log.info("Получен запрос на добавление пользователя: {}",
-                user.getName());
-
-        checkDuplicateUser(user);
-        prepareName(user);
-
-        long newId = IdGenerator.getNextId(users);
-        user.setId(newId);
-        users.put(user.getId(), user);
-
-        log.info("Пользователь успешно добавлен с id = {}", user.getId());
-
-        return user;
+        return service.addUser(user);
     }
 
     /**
@@ -60,29 +53,7 @@ public final class UserController {
      */
     @PutMapping
     public User update(@Valid @RequestBody final User newUser) {
-        log.info("Получен запрос на обновление пользователя: {}",
-                newUser.getName());
-
-        if (newUser.getId() == null) {
-            log.warn("Попытка обновить пользователя без id");
-            throw new ValidationException("Id должен быть указан");
-        }
-
-        if (!users.containsKey(newUser.getId())) {
-            log.warn("Попытка обновить несуществующего юзера с id = {}",
-                    newUser.getId());
-            throw new NotFoundException("Пользователь с id = "
-                    + newUser.getId() + " не найден");
-        }
-
-        checkDuplicateUserForUpdate(newUser);
-        prepareName(newUser);
-
-        users.put(newUser.getId(), newUser);
-        log.info("Информация о пользователе с id = {} обновлена",
-                newUser.getId());
-
-        return newUser;
+        return service.update(newUser);
     }
 
     /**
@@ -92,50 +63,60 @@ public final class UserController {
      */
     @GetMapping
     public Collection<User> getAllUsers() {
-        log.info("Получен запрос на список всех пользователей. Всего: {}",
-                users.size());
-        return users.values();
+        return service.getAllUsers();
     }
 
     /**
-     * Проверяет и подставляет логин, если имя пустое.
+     * Добавляет пользователя в список друзей.
      *
-     * @param user объект пользователя для проверки имени
+     * @param id       идентификатор пользователя
+     * @param friendId идентификатор друга
      */
-    private void prepareName(final User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            log.info("Пустое имя заполнено логином: {}",
-                    user.getLogin());
-            user.setName(user.getLogin());
-        }
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(
+            @PathVariable final Long id,
+            @PathVariable final Long friendId
+    ) {
+        service.addFriend(id, friendId);
     }
 
     /**
-     * Проверяет уникальность данных пользователя перед сохранением.
+     * Удаляет пользователя из списка друзей.
      *
-     * @param user объект пользователя для проверки
+     * @param id       идентификатор пользователя
+     * @param friendId идентификатор друга
      */
-    private void checkDuplicateUser(final User user) {
-        if (users.values().stream().anyMatch(user::equals)) {
-            log.warn("Попытка добавить дубликат пользователя");
-            throw new DuplicatedDataException("Этот пользователь уже добавлен");
-        }
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(
+            @PathVariable final Long id,
+            @PathVariable final Long friendId
+    ) {
+        service.removeFriend(id, friendId);
     }
 
     /**
-     * Проверяет уникальность данных пользователя при обновлении.
+     * Возвращает список друзей пользователя.
      *
-     * @param newUser обновленный объект пользователя
+     * @param id идентификатор пользователя
+     * @return список друзей
      */
-    private void checkDuplicateUserForUpdate(final User newUser) {
-        boolean isDuplicate = users.values().stream()
-                .filter(u -> !u.getId().equals(newUser.getId()))
-                .anyMatch(newUser::equals);
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable final Long id) {
+        return service.getFriends(id);
+    }
 
-        if (isDuplicate) {
-            log.warn("Попытка обновить юзера чужими данными");
-            throw new DuplicatedDataException("Пользователь с такими "
-                    + "данными уже существует");
-        }
+    /**
+     * Возвращает список общих друзей.
+     *
+     * @param id       идентификатор пользователя
+     * @param friendId идентификатор другого пользователя
+     * @return список общих друзей
+     */
+    @GetMapping("/{id}/friends/common/{friendId}")
+    public List<User> getCommonFriends(
+            @PathVariable final Long id,
+            @PathVariable final Long friendId
+    ) {
+        return service.getCommonFriends(id, friendId);
     }
 }

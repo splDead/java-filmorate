@@ -4,6 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -16,16 +18,16 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        userController = new UserController();
+        userController = new UserController(new UserService(new InMemoryUserStorage()));
     }
 
     private User createValidUser() {
-        User user = new User();
-        user.setEmail("test@yandex.ru");
-        user.setLogin("nagibator99");
-        user.setName("Иван");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
-        return user;
+        return User.builder()
+                .email("test@yandex.ru")
+                .login("nagibator99")
+                .name("Иван")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
     }
 
     @Test
