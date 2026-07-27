@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -107,5 +108,37 @@ public final class ErrorHandler {
                 "error", "Ошибка валидации параметров объекта",
                 "message", message.toString()
         );
+    }
+
+    /**
+     * Обрабатывает исключения некорректных аргументов.
+     *
+     * @param e исключение некорректного аргумента
+     * @return карта с описанием ошибки
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleIllegalArgumentException(
+            final IllegalArgumentException e
+    ) {
+        log.warn("Некорректный аргумент: {}", e.getMessage());
+        return Map.of("error", "Некорректный параметр запроса",
+                "message", e.getMessage());
+    }
+
+    /**
+     * Обрабатывает ошибки нарушения целостности данных.
+     *
+     * @param e исключение нарушения целостности данных
+     * @return карта с описанием ошибки
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleDataIntegrityViolationException(
+            final DataIntegrityViolationException e
+    ) {
+        log.warn("Нарушение целостности данных в БД: {}", e.getMessage());
+        return Map.of("error", "Связанный объект не найден в справочниках",
+                "message", "Несуществующий ID связанной сущности");
     }
 }

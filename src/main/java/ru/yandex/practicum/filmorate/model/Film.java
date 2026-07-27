@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,6 +12,7 @@ import lombok.Getter;
 import ru.yandex.practicum.filmorate.annotation.ValidReleaseDate;
 
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Data
 @Builder
+@AllArgsConstructor
 public final class Film {
 
     /** Максимально допустимая длина описания фильма. */
@@ -45,6 +48,13 @@ public final class Film {
     @NotNull
     @Positive
     private Integer duration;
+
+    /** Рейтинг MPA. Соответствует полю mpa_rating_id в таблице films. */
+    private Mpa mpa;
+
+    /** Жанры фильма. Связываются через промежуточную таблицу film_genres. */
+    @Builder.Default
+    private LinkedHashSet<Genre> genres = new LinkedHashSet<>();
 
     /** Список идентификаторов пользователей, поставивших лайк. */
     @Getter(lombok.AccessLevel.NONE)

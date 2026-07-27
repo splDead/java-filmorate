@@ -1,6 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -8,115 +11,130 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
- * Контроллер для обработки запросов, связанных с пользователями.
+ * REST-контроллер для обработки запросов, связанных с пользователями.
  */
+@Slf4j
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 public final class UserController {
 
-    /** Сервис для работы с пользователями. */
+    /** Сервис для работы с бизнес-логикой пользователей. */
     private final UserService service;
 
     /**
-     * Конструктор контроллера.
+     * Создает нового пользователя в системе.
      *
-     * @param userService сервис пользователей
-     */
-    public UserController(final UserService userService) {
-        this.service = userService;
-    }
-
-    /**
-     * Добавляет нового пользователя в систему.
-     *
-     * @param user объект пользователя для добавления
-     * @return сохраненный пользователь с присвоенным ID
+     * @param userDto данные создаваемого пользователя
+     * @return созданный пользователь с присвоенным ID
      */
     @PostMapping
-    public User addUser(@Valid @RequestBody final User user) {
-        return service.addUser(user);
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserDto createUser(@Valid @RequestBody final UserDto userDto) {
+        log.info("REST-запрос на создание пользователя: {}",
+                userDto.getLogin());
+        return service.createUser(userDto);
     }
 
     /**
      * Обновляет данные существующего пользователя.
      *
-     * @param newUser объект пользователя с обновленными данными
-     * @return обновленный пользователь
+     * @param userDto обновленные данные пользователя
+     * @return обновленный объект пользователя
      */
     @PutMapping
-    public User update(@Valid @RequestBody final User newUser) {
-        return service.update(newUser);
+    public UserDto updateUser(@Valid @RequestBody final UserDto userDto) {
+        log.info("REST-запрос на обновление пользователя с ID: {}",
+                userDto.getId());
+        return service.updateUser(userDto);
     }
 
     /**
-     * Возвращает список всех сохраненных пользователей.
+     * Возвращает коллекцию всех зарегистрированных пользователей.
      *
      * @return коллекция всех пользователей
      */
     @GetMapping
-    public Collection<User> getAllUsers() {
+    public Collection<UserDto> getAllUsers() {
+        log.info("REST-запрос на получение всех пользователей");
         return service.getAllUsers();
     }
 
     /**
-     * Добавляет пользователя в список друзей.
+     * Добавляет пользователя в друзья.
      *
-     * @param id       идентификатор пользователя
-     * @param friendId идентификатор друга
+     * @param id уникальный идентификатор инициатора
+     * @param friendId уникальный идентификатор добавляемого друга
      */
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(
             @PathVariable final Long id,
-            @PathVariable final Long friendId
-    ) {
+            @PathVariable final Long friendId) {
+        log.info("REST-запрос: пользователь {} добавляет в друзья {}",
+                id, friendId);
         service.addFriend(id, friendId);
     }
 
     /**
-     * Удаляет пользователя из списка друзей.
+     * Удаляет пользователя из друзей.
      *
-     * @param id       идентификатор пользователя
-     * @param friendId идентификатор друга
+     * @param id уникальный идентификатор инициатора
+     * @param friendId уникальный идентификатор удаляемого друга
      */
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriend(
             @PathVariable final Long id,
-            @PathVariable final Long friendId
-    ) {
+            @PathVariable final Long friendId) {
+        log.info("REST-запрос: пользователь {} удаляет из друзей {}",
+                id, friendId);
         service.removeFriend(id, friendId);
     }
 
     /**
-     * Возвращает список друзей пользователя.
+     * Возвращает список всех друзей конкретного пользователя.
      *
-     * @param id идентификатор пользователя
-     * @return список друзей
+     * @param id уникальный идентификатор пользователя
+     * @return коллекция DTO объектов друзей
      */
     @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable final Long id) {
+    public Collection<UserDto> getFriends(@PathVariable final Long id) {
+        log.info("REST-запрос: получение друзей пользователя {}", id);
         return service.getFriends(id);
     }
 
     /**
-     * Возвращает список общих друзей.
+     * Возвращает список общих друзей между двумя пользователями.
      *
-     * @param id       идентификатор пользователя
-     * @param friendId идентификатор другого пользователя
-     * @return список общих друзей
+     * @param id уникальный идентификатор первого пользователя
+     * @param otherId уникальный идентификатор второго пользователя
+     * @return коллекция DTO объектов общих друзей
      */
-    @GetMapping("/{id}/friends/common/{friendId}")
-    public List<User> getCommonFriends(
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Collection<UserDto> getCommonFriends(
             @PathVariable final Long id,
-            @PathVariable final Long friendId
-    ) {
-        return service.getCommonFriends(id, friendId);
+            @PathVariable final Long otherId) {
+        log.info("REST-запрос: получение общих друзей для {} и {}",
+                id, otherId);
+        return service.getCommonFriends(id, otherId);
+    }
+
+    /**
+     * Возвращает пользователя по его уникальному идентификатору.
+     *
+     * @param id уникальный идентификатор искомого пользователя
+     * @return DTO объект найденного пользователя
+     */
+    @GetMapping("/{id}")
+    public UserDto findUserById(@PathVariable final Long id) {
+        log.info("REST-запрос на получение пользователя с ID: {}", id);
+        return service.findUserById(id);
     }
 }
