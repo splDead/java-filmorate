@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @JdbcTest
 @AutoConfigureTestDatabase
 @ComponentScan(basePackages = "ru.yandex.practicum.filmorate")
-class FilmoRateApplicationTests {
+class FilmorateApplicationTests {
 	@Autowired
 	@Qualifier("userDbStorage")
 	private UserStorage userStorage;
