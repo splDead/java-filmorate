@@ -123,15 +123,7 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sqlDeleteGenres, film.getId());
 
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            String sqlInsertGenre =
-                    "INSERT INTO film_genres (film_id, genre_id) "
-                    + "VALUES (?, ?)";
-
-            List<Object[]> batchArgs = film.getGenres().stream()
-                    .map(genre -> new Object[]{film.getId(), genre.getId()})
-                    .collect(Collectors.toList());
-
-            jdbcTemplate.batchUpdate(sqlInsertGenre, batchArgs);
+            saveGenres(film);
 
             String sqlSelectGenres =
                     "SELECT g.id, g.name AS name FROM genres g "
@@ -219,9 +211,12 @@ public class FilmDbStorage implements FilmStorage {
         }
         String sqlQuery = "INSERT INTO film_genres (film_id, genre_id) "
                 + "VALUES (?, ?)";
-        for (Genre genre : film.getGenres()) {
-            jdbcTemplate.update(sqlQuery, film.getId(), genre.getId());
-        }
+
+        List<Object[]> batchArgs = film.getGenres().stream()
+                .map(genre -> new Object[]{film.getId(), genre.getId()})
+                .collect(Collectors.toList());
+
+        jdbcTemplate.batchUpdate(sqlQuery, batchArgs);
     }
 
     /**
